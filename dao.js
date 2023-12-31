@@ -5,7 +5,7 @@ var pool;
 
 
 ///MONGODB
-MongoClient.connect('mongodb://127.0.0.1:27017')
+mongo.connect('mongodb://127.0.0.1:27017')
     .then((client) => {
         db = client.db('proj2023MognoDB')
         coll = db.collection('managers')

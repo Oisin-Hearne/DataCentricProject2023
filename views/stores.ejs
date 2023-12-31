@@ -1,0 +1,15 @@
+<table>
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Age</th>
+    </tr>
+    <% stores.forEach((s) => { %>
+        <tr>
+            <td><%= s.sid %></td>
+            <td><%= s.location %></td>
+            <td><%= s.mgrid %></td>
+            <td><a href="/stores/edit/<%= s.sid%>">Update</a></td>
+        </tr>
+    <% }) %>
+</table>

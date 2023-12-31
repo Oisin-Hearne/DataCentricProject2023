@@ -15,19 +15,66 @@ app.get('/', (req, res) => {
 })
 
 //Stores
+app.get('/stores', (req, res) => {
+    DBDAO.getStores()
+        .then((data) => {
+            res.render("stores", { "stores": data });
+        })
+        .catch((error) => {
+            console.log(error)
+        });
+})
 
 //Update a store & return user to /stores.
 //Conditions: SID can't be edited, Location must be 1 character at least, Manager ID must be 4chars and must exist.
+app.get('/stores/edit/:sid', (req, res) => {
+    res.render("editStore", { errors: undefined, sid: req.params.sid });
+})
+app.post('/stores/edit/:sid',
+    [
+        check("location").isLength({ min: 1 }).withMessage("Please enter ID"),
+        check("mgrid").isLength({ min: 4, max: 4 }).withMessage("Manager ID must be 4 characters."),
+        check("mgrid").custom(async id => { //Checks if the manager exists and is unassigned.
+            const managerExists = await DBDAO.checkManager(id);
+            if (managerExists) {
+            }
+            else {
+                throw new Error("Manager must exist and be currently unassigned!")
+            }
+        })
+    ], (req, res) => {
+        const errors = validationResult(req);
 
-//Add a store, same conditions as above.
-
+        if (!errors.isEmpty()) {
+            res.render("editStore", { errors: errors.errors });
+        }
+        else {
+            DBDAO.editStore(req.params.storeID, req.params.location, req.params.mgrid)
+                .then((data) => {
+                    if (data.affectedRows == 1)
+                        res.send("Store " + req.params.storeID + " edited succesfully!");
+                    else (data.affectedRows == 0)
+                    res.send("Store " + req.params.storeID + " not found!")
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
+            res.send("Employee added!")
+        }
+    })
 
 //Products
+app.get('/products', (req, res) => {
+    res.render("products");
+})
 
 //Delete a product - can't delete if it's not in any store.
 
 
 //Managers
+app.get('/managers', (req, res) => {
+    res.render("managers");
+})
 
 //Add Manager - ID must be unique & at least 4chars, name must be at least 5chars, Salary must be >30000 & <70000
 
