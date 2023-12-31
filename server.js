@@ -34,14 +34,22 @@ app.post('/stores/edit/:sid',
     [
         check("location").isLength({ min: 1 }).withMessage("Please enter a location."),
         check("mgrid").isLength({ min: 4, max: 4 }).withMessage("Manager ID must be 4 characters."),
-        check("mgrid").custom(async mgrid => { //Checks if the manager exists and is unassigned.
+        check("mgrid").custom(mgrid => { //Checks if the manager exists and is unassigned.
             console.log(mgrid);
-            const managerExists = await DBDAO.checkManager(mgrid);
-            if (managerExists) {
-            }
-            else {
+            DBDAO.checkManager(mgrid)
+            .then((count) => {
+                if(count > 0) {
+//i give up for now
+                }
+                else {
+                    throw new Error("Manager must exist and be currently unassigned!")
+                }
+            })
+            .catch((error) => {
+                console.log(error);
                 throw new Error("Manager must exist and be currently unassigned!")
-            }
+            })
+
         })
     ], (req, res) => {
         const errors = validationResult(req);
@@ -50,7 +58,7 @@ app.post('/stores/edit/:sid',
             res.render("editStore", { errors: errors.errors, sid: req.params.sid });
         }
         else {
-            DBDAO.editStore(req.params.storeID, req.params.location, req.params.mgrid)
+            DBDAO.editStore( req.params.storeID, req.params.location, req.params.mgrid)
                 .then((data) => {
                     if (data.affectedRows == 1)
                         res.send("Store " + req.params.storeID + " edited succesfully!");
@@ -84,9 +92,43 @@ app.get('/managers', (req, res) => {
 })
 
 //Add Manager - ID must be unique & at least 4chars, name must be at least 5chars, Salary must be >30000 & <70000
+app.get('/managers/add', (req, res) => {
+    res.render("addManager", { errors: undefined});
+})
 
+app.post('/managers/add',
+    [
+        check("mgrid").isLength({min:4, max:4}).withMessage("ID must be 4 characters."),
+        check("name").isLength({min:5}).withMessage("Name must be at least 5 characters."),
+        check("salary").isNumeric({min:30000,max:70000}).withMessage("Salary must be between 30,000 and 70,000."),
+        check("mgrid").custom(mgrid => {
+            DBDAO.searchManager(mgrid)
+            .then((data) => {
+                console.log(data);
+            })
+            .catch((error) => {
+                console.log(error);
+            })
+        })
+    ], (req, res) => {
+        const errors = validationResult(req);
 
-app.listen(port, () => {
+        if(!errors.isEmpty()) {
+            res.render("addEmployee",{errors:errors.errors});
+        }
+        else {
+            var newManager = {_id: req.body.mgrid, name: req.body.name, salary: req.body.salary};
+            DBDAO.addManager()
+            .then((data) => {
+                res.redirect("/managers");
+            })
+            .catch((error) => {
+                console.log(error)
+            });
+        }
+})
+
+app.listen(port, async () => {
     console.log(`Example app listening on port ${port}`)
 })
 

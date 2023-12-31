@@ -1,0 +1,23 @@
+<div style="margin: auto; width: 50%; border: 3px solid black; padding: 10px;">
+
+    <h1> Add Manager </h1>
+    <% if (errors !=undefined) { %>
+        <ul>
+            <% errors.forEach((error)=> { %>
+                <li>
+                    <%= error.msg %>
+                </li>
+                <% }) %>
+        </ul>
+        <% } %>
+
+            <form action=<%= "/managers/add/"%> method="POST">
+                <label>ID: </label>
+                <input type="text" name="mgrid"><br>
+                <label>Location: </label>
+                <input type="text" name="name"><br>
+                <label>Manager ID: </label>
+                <input type="text" name="salary"><br>
+                <input type="submit" value="OK">
+            </form>
+</div>

@@ -41,6 +41,19 @@ var addManager = function(manager) {
     })
 }
 
+//Search for a manager by ID.
+var searchManager = function(manager) {
+    return new Promise((resolve, reject) => {
+        coll.find({_id: manager})
+        .then((documents) => {
+            resolve(documents)
+        })
+        .catch((error) => {
+            reject(error)
+        })
+    })
+}
+
 var checkManager = async function(manager) {
     await isManagerAssigned(manager)
     .then(async (data) => {
@@ -51,12 +64,16 @@ var checkManager = async function(manager) {
         }
         else if(data.length == 0) {
             //Manager is not currently assigned, but we don't know if they exist yet.
-            count = await coll.count({_id: "M006"})
-            console.log(count)
-            if(count > 2) //exists!
-                return true;
-            else //doesn't!
-                return false;
+            return new Promise((resolve, reject) => {
+                coll.count({_id: manager})
+                .then((result) => {
+                    console.log(result);
+                    resolve(result)
+                })
+                .catch((error) => {
+                    reject(error)
+                })
+            })
         }
     })
     .catch((error) => {
@@ -188,4 +205,4 @@ var isManagerAssigned = function(manager) {
     })
 }
 
-module.exports = { getManagers, addManager, getStores, editStore, getProducts, deleteProduct, checkManager };
+module.exports = { getManagers, addManager, searchManager, getStores, editStore, getProducts, deleteProduct, checkManager };
