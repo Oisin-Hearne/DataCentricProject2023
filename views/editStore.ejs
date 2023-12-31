@@ -11,13 +11,13 @@
         </ul>
         <% } %>
 
-            <form action="/stores/edit/" method="POST">
+            <form action=<%= "/stores/edit/"+sid%> method="POST">
                 <label>ID: </label>
                 <%= sid %><br>
                 <label>Location: </label>
-                <input type="text" name="name"><br>
+                <input type="text" name="location"><br>
                 <label>Manager ID: </label>
-                <input type="text" name="salary"><br>
+                <input type="text" name="mgrid"><br>
                 <input type="submit" value="OK">
             </form>
 </div>

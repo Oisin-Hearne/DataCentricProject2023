@@ -7,7 +7,7 @@ var pool;
 ///MONGODB
 mongo.connect('mongodb://127.0.0.1:27017')
     .then((client) => {
-        db = client.db('proj2023MognoDB')
+        db = client.db('proj2023MongoDB')
         coll = db.collection('managers')
     })
     .catch((error) => {
@@ -31,7 +31,7 @@ var getManagers = function() {
 //Add a manager to the database.
 var addManager = function(manager) {
     return new Promise((resolve, reject) => {
-        coll.insertOne(employee)
+        coll.insertOne(manager)
             .then((documents) => {
                 resolve(documents)
             })
@@ -39,6 +39,33 @@ var addManager = function(manager) {
                 reject(error)
             })
     })
+}
+
+var checkManager = async function(manager) {
+    await isManagerAssigned(manager)
+    .then(async (data) => {
+        console.log(data);
+        if(data.length > 0)  {
+            //Manager is currently assigned
+            return false;
+        }
+        else if(data.length == 0) {
+            //Manager is not currently assigned, but we don't know if they exist yet.
+            count = await coll.count({_id: "M006"})
+            console.log(count)
+            if(count > 2) //exists!
+                return true;
+            else //doesn't!
+                return false;
+        }
+    })
+    .catch((error) => {
+        console.log(error);
+        if (error.errno == 1451) {
+            res.send("Student could not be deleted!")
+            found = 1;
+        }
+    });
 }
 
 
@@ -64,6 +91,7 @@ var getStores = function () {
     return new Promise((resolve, reject) => {
         pool.query('select * from store')
             .then((data) => {
+                console.log(data)
                 resolve(data)
             })
             .catch(error => {
@@ -94,6 +122,7 @@ var getProducts = function () {
     return new Promise((resolve, reject) => {
         pool.query('select * from product')
             .then((data) => {
+                console.log(data)
                 resolve(data)
             })
             .catch(error => {
@@ -142,4 +171,21 @@ var checkProduct = function (productID) {
     })
 }
 
-module.exports = { getManagers, addManager, getStores, editStore, getProducts, deleteProduct };
+var isManagerAssigned = function(manager) {
+    var checkQuery = {
+        sql: 'select * from store where mgrid=?',
+        values: [manager]
+    }
+    return new Promise((resolve,reject) => {
+        pool.query(checkQuery)
+            .then((data) => {
+                resolve(data)
+            })
+            .catch((error) => {
+                console.log(error);
+                reject(error)
+            })
+    })
+}
+
+module.exports = { getManagers, addManager, getStores, editStore, getProducts, deleteProduct, checkManager };
