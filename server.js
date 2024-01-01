@@ -160,6 +160,7 @@ app.post('/managers/add',
             })
             .catch((error) => {
                 console.log(error)
+                res.send("Error: Did you try to add a Manager ID that already exists?")
             });
         }
 })
