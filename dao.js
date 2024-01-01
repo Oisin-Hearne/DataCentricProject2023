@@ -31,6 +31,7 @@ var getManagers = function() {
 //Add a manager to the database.
 var addManager = function(manager) {
     return new Promise((resolve, reject) => {
+        console.log(manager);
         coll.insertOne(manager)
             .then((documents) => {
                 resolve(documents)
@@ -44,7 +45,7 @@ var addManager = function(manager) {
 //Search for a manager by ID.
 var searchManager = function(manager) {
     return new Promise((resolve, reject) => {
-        coll.find({_id: manager})
+        coll.findOne({_id: manager})
         .then((documents) => {
             resolve(documents)
         })
@@ -137,7 +138,7 @@ var editStore = function (storeID, location, mgrid) {
 //Get Products
 var getProducts = function () {
     return new Promise((resolve, reject) => {
-        pool.query('select * from product')
+        pool.query('select pr.pid,pr.productdesc,s.sid,s.location,p.price from product pr left join product_store p on p.pid=pr.pid left join store s on p.sid=s.sid;')
             .then((data) => {
                 console.log(data)
                 resolve(data)

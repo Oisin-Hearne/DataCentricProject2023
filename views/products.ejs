@@ -1,0 +1,28 @@
+<div style="margin: auto; width: 50%; border: 3px solid black; padding: 10px;">
+
+    <h1>Products</h1>
+    <hr>
+    
+    <table>
+        <tr>
+            <th>Product ID</th>
+            <th>Description</th>
+            <th>Store ID</th>
+            <th>Location</th>
+            <th>Price</th>
+            <th>Delete?</th>
+        </tr>
+        <% products.forEach((p) => { %>
+            <tr>
+                <td><%= p.pid %></td>
+                <td><%= p.productdesc %></td>
+                <td><%= p.sid %></td>
+                <td><%= p.location %></td>
+                <td><%= p.price %></td>
+                <td><a href="/products/delete/<%= p.pid %>">Delete <%= p.productdesc %>?</a></td>
+            </tr>
+        <% }) %>
+    </table>
+    <hr>
+    <a href="/">Home</a>
+    </div>

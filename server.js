@@ -33,13 +33,18 @@ app.get('/stores/edit/:sid', (req, res) => {
 app.post('/stores/edit/:sid',
     [
         check("location").isLength({ min: 1 }).withMessage("Please enter a location."),
-        check("mgrid").isLength({ min: 4, max: 4 }).withMessage("Manager ID must be 4 characters."),
+        check("mgrid").isLength({ min: 4, max: 4 }).withMessage("Manager ID must be 4 characters.")/*,
+        
+        This and the other .custom later on do not work, with both ending up with undefined values
+        even though the methods that make them up (checkManager and so on) seem to work correctly,
+        when they're returned here they seem to just return undefined.
+        :(
         check("mgrid").custom(mgrid => { //Checks if the manager exists and is unassigned.
             console.log(mgrid);
             DBDAO.checkManager(mgrid)
             .then((count) => {
                 if(count > 0) {
-//i give up for now
+
                 }
                 else {
                     throw new Error("Manager must exist and be currently unassigned!")
@@ -49,8 +54,7 @@ app.post('/stores/edit/:sid',
                 console.log(error);
                 throw new Error("Manager must exist and be currently unassigned!")
             })
-
-        })
+        })*/
     ], (req, res) => {
         const errors = validationResult(req);
 
@@ -67,6 +71,7 @@ app.post('/stores/edit/:sid',
                 })
                 .catch((error) => {
                     console.log(error);
+                    res.send("Ran into an error! Check if the manager ID used exists & isn't assigned to anything else!")
                 });
             res.send("Employee added!")
         }
@@ -74,11 +79,34 @@ app.post('/stores/edit/:sid',
 
 //Products
 app.get('/products', (req, res) => {
-    res.render("products");
+    DBDAO.getProducts()
+        .then((data) => {
+            res.render("products", { "products": data });
+        })
+        .catch((error) => {
+            console.log(error)
+        });
 })
 
 //Delete a product - can't delete if it's not in any store.
+app.get('/products/delete/:pid', async (req, res) => {
+    var found = 0;
 
+    DBDAO.deleteProduct(req.params.pid)
+        .then((data) => {
+            if(data.affectedRows == 1)
+                res.send("Product:"+req.params.pid+" deleted!");
+            else(data.affectedRows == 0)
+                res.send("Product: "+req.params.pid+" not found!")
+        })
+        .catch((error) => {
+            console.log(error);
+            if (error.errno == 1451) {
+                res.send(req.params.pid+" is currently in stores and so could not be deleted.")
+                found = 1;
+            }
+        });
+})
 
 //Managers
 app.get('/managers', (req, res) => {
@@ -98,27 +126,35 @@ app.get('/managers/add', (req, res) => {
 
 app.post('/managers/add',
     [
-        check("mgrid").isLength({min:4, max:4}).withMessage("ID must be 4 characters."),
+        check("mgrid").isLength({min:4}).withMessage("ID must be 4 characters."),
         check("name").isLength({min:5}).withMessage("Name must be at least 5 characters."),
-        check("salary").isNumeric({min:30000,max:70000}).withMessage("Salary must be between 30,000 and 70,000."),
-        check("mgrid").custom(mgrid => {
-            DBDAO.searchManager(mgrid)
+        check("salary").isFloat({min:30000,max:70000}).withMessage("Salary must be between 30,000 and 70,000.")/*,
+        This isn't working, and I'm afraid I ran out of time before I could figure it out.
+
+        check("mgrid").custom(async mgrid => {
+            await DBDAO.searchManager(mgrid)
             .then((data) => {
-                console.log(data);
+                console.log(data); //From debugging, it gets to this point (going through searchManager and all that) but then
+                // when it gets here it's just null.
+                // :(
+                if(data !== null)
+                    throw new Error("Manager already exists!")
             })
             .catch((error) => {
                 console.log(error);
             })
-        })
+        })*/
     ], (req, res) => {
         const errors = validationResult(req);
+        console.log(errors);
+        console.log(req.body.mgrid+" "+req.body.name+" "+req.body.salary)
 
         if(!errors.isEmpty()) {
-            res.render("addEmployee",{errors:errors.errors});
+            res.render("addManager",{errors:errors.errors});
         }
         else {
             var newManager = {_id: req.body.mgrid, name: req.body.name, salary: req.body.salary};
-            DBDAO.addManager()
+            DBDAO.addManager(newManager)
             .then((data) => {
                 res.redirect("/managers");
             })
@@ -132,37 +168,3 @@ app.listen(port, async () => {
     console.log(`Example app listening on port ${port}`)
 })
 
-//Code Snippets
-/*
-Send user to students.ejs
-    DBDAO.getStudents()
-        .then((data) => {
-            res.render("student", { "students": data }); 
-        })
-        .catch((error) => {
-            console.log(error)
-        });
-
-//Delete a student from the db
-app.get('/students/delete/:id', async (req, res) => {
- 
-   var found = 0;
-    DBDAO.deleteStudent(req.params.id)
-        .then((data) => {
-            if(data.affectedRows == 1)
-                res.send("Student:"+req.params.id+" deleted!");
-            else(data.affectedRows == 0)
-                res.send("Student: "+req.params.id+" not found!")
-        })
-        .catch((error) => {
-            console.log(error);
-            if (error.errno == 1451) {
-                res.send("Student could not be deleted!")
-                found = 1;
-            }
-        });
-
-})
-
-
-*/
