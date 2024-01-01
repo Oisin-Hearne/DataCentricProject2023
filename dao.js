@@ -4,7 +4,9 @@ var pool;
 
 
 
-///MONGODB
+///MONGODB ==========================================================================================================
+
+//Connect to locally hosted db.
 mongo.connect('mongodb://127.0.0.1:27017')
     .then((client) => {
         db = client.db('proj2023MongoDB')
@@ -14,7 +16,7 @@ mongo.connect('mongodb://127.0.0.1:27017')
         console.log(error.message)
     })
 
-//Get Managers from MongoDB
+//Get managers from database.
 var getManagers = function() {
     return new Promise((resolve, reject) => {
         var cursor = coll.find()
@@ -55,6 +57,8 @@ var searchManager = function(manager) {
     })
 }
 
+//Check if a manager exists. Used for validation. Works, but seemingly when passed into custom()
+//it returns an undefined value.
 var checkManager = async function(manager) {
     await isManagerAssigned(manager)
     .then(async (data) => {
@@ -79,16 +83,13 @@ var checkManager = async function(manager) {
     })
     .catch((error) => {
         console.log(error);
-        if (error.errno == 1451) {
-            res.send("Student could not be deleted!")
-            found = 1;
-        }
     });
 }
 
 
 
-///MYSQL
+///MYSQL ==========================================================================================================
+// Connect to locally hosted MySQL db.
 pmysql.createPool({
     connectionLimit: 3,
     host: 'localhost',
@@ -104,7 +105,7 @@ pmysql.createPool({
     });
 
 
-//Get Stores
+//Get list of stores from db.
 var getStores = function () {
     return new Promise((resolve, reject) => {
         pool.query('select * from store')
@@ -118,7 +119,7 @@ var getStores = function () {
     })
 }
 
-//Edit Store
+//Edit a store
 var editStore = function (storeID, location, mgrid) {
     var editQuery = {
         sql: 'update store set location=?, mgrid=?, where sid=?',
@@ -172,6 +173,8 @@ var deleteProduct = function (productID) {
 }
 
 //Checks for a product's existence in the product_store - ie, is the product on shelves?
+//This bit doesn't really end up getting used, I forgot mySQL returns an error code that can be
+//used to tell if it's run into a product that's in a store.
 var checkProduct = function (productID) {
     var checkQuery = {
         sql: 'select * from product_store where pid=?',
@@ -189,6 +192,7 @@ var checkProduct = function (productID) {
     })
 }
 
+//Used in the attempt to get custom() working. Seemingly works, but doesn't in custom() 
 var isManagerAssigned = function(manager) {
     var checkQuery = {
         sql: 'select * from store where mgrid=?',

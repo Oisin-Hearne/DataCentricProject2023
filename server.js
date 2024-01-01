@@ -101,7 +101,7 @@ app.get('/products/delete/:pid', async (req, res) => {
         })
         .catch((error) => {
             console.log(error);
-            if (error.errno == 1451) {
+            if (error.errno == 1451) {// <- error code for a forbidden deletion.
                 res.send(req.params.pid+" is currently in stores and so could not be deleted.")
                 found = 1;
             }
@@ -153,6 +153,7 @@ app.post('/managers/add',
             res.render("addManager",{errors:errors.errors});
         }
         else {
+            //Add the new manager to the system.
             var newManager = {_id: req.body.mgrid, name: req.body.name, salary: req.body.salary};
             DBDAO.addManager(newManager)
             .then((data) => {
